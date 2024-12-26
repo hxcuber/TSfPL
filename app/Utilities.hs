@@ -27,12 +27,6 @@ instance Substitutable a b => Substitutable a [(c, b)] where
   substitute :: Substitutable a b => TypeSub a -> [(c, b)] -> [(c, b)]
   substitute ts = map (fmap (substitute ts))
 
--- instance Substitutable a b => Substitutable a (c, b) where
---   applySub :: Substitutable a b => Substitution a -> (c, b) -> (c, b)
---   applySub s = fmap (applySub s)
---   substitute :: Substitutable a b => TypeSub a -> (c, b) -> (c, b)
---   substitute ts = fmap (substitute ts)
-
 {- |
 Free instance for the return of a principle pair algorithm.
 Note that this is overlappable because some usages incidentally have the same shape.

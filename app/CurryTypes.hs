@@ -54,41 +54,16 @@ instance Type CurryType where
   typeVar = TypeVar
   arrow = Arrow
 
-pp :: Int -> Expr -> Maybe ((Context, CurryType), Int)
-pp n (Var v) =
-  Just (([(v, fresh)], fresh), next)
-    where
-      next = n+1
-      fresh = TypeVar next
-pp n (Abs v e) =
-  do ((pc, pt), next) <- pp n e
-     let next'         = next+1
-     let fresh         = TypeVar next'
-     let doesntOccur   = ((pc, Arrow fresh pt), next')
-     let doesOccur t   = ((deleteFirstsBy (\ (v1, _) (v2,_) -> v1 == v2) pc [(v, t)], Arrow t pt), next)
-     return $ maybe doesntOccur doesOccur (lookup v pc)
-pp n (Appl e1 e2) =
-  do ((pc1, pt1), next)  <- pp n e1
-     ((pc2, pt2), next') <- pp next e2
-     let next''           = next' + 1
-     let fresh            = TypeVar next''
-     s1                  <- unify pt1 (Arrow pt2 fresh)
-     s2                  <- unifyContexts (applySub s1 pc1) (applySub s1 pc2)
-     return (applySub (s2 . s1) (unionBy (\ (v1, _) (v2,_) -> v1 == v2) pc1 pc2, fresh), next'')
-
-pp' = pp 0
-
 type PPState = StateT Int Maybe (Context, CurryType)
-
-pps :: Expr -> PPState
-pps (Var v) =
+pp :: Expr -> PPState
+pp (Var v) =
   do n <- get
      let next  = n + 1
      let fresh = TypeVar next
      put next
      return ([(v, fresh)], fresh)
-pps (Abs v e) =
-  do (pc, pt)  <- pps e
+pp (Abs v e) =
+  do (pc, pt)  <- pp e
      next      <- get
      let next'  = next + 1
      let fresh  = TypeVar next'
@@ -96,9 +71,9 @@ pps (Abs v e) =
        Nothing -> do put next'
                      return (pc, Arrow fresh pt)
        Just t  -> return (deleteFirstsBy (\ (v1, _) (v2,_) -> v1 == v2) pc [(v, t)], Arrow t pt)
-pps (Appl e1 e2) =
-  do (pc1, pt1) <- pps e1
-     (pc2, pt2) <- pps e2
+pp (Appl e1 e2) =
+  do (pc1, pt1) <- pp e1
+     (pc2, pt2) <- pp e2
      next'      <- get
      let next''  = next' + 1
      let fresh   = TypeVar next''
@@ -107,7 +82,7 @@ pps (Appl e1 e2) =
      put next''
      return $ applySub (s2 . s1) (unionBy (\ (v1, _) (v2,_) -> v1 == v2) pc1 pc2, fresh)
 
-pps' e = runStateT (pps e) 0
+pp' e = runStateT (pp e) 0
 
 type PPMaybe = MaybeT (State Int) (Context, CurryType)
 
@@ -142,5 +117,3 @@ liftMaybe :: Maybe a -> MaybeT (State b) a
 liftMaybe = MaybeT . return
 
 ppm' e = runState (runMaybeT (ppm e)) 0
-
-test e = pp' e == pps' e

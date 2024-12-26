@@ -28,7 +28,7 @@ instance Substitutable a b => Substitutable a [(c, b)] where
   substitute ts = map (fmap (substitute ts))
 
 {- |
-Free instance for the return of a principle pair algorithm.
+Free instance for the return of a principal pair algorithm.
 Note that this is overlappable because some usages incidentally have the same shape.
 -}
 instance {-# OVERLAPPABLE #-} (Substitutable a b, Substitutable a c) => Substitutable a (c, b) where

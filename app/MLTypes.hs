@@ -1,6 +1,8 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
+
 module MLTypes where
 import Utilities (Substitutable (..), Substitution, Type (..), Variable, TypeSub)
 import Data.Bifunctor (Bifunctor(second))
@@ -31,20 +33,6 @@ instance Substitutable BasicType PolyType where
       BasicType bt -> BasicType $ substitute ts bt
       Forall i pt -> Forall i (substitute ts pt)
 
-instance Substitutable BasicType [(String, BasicType)] where
-  applySub :: Substitution BasicType -> [(String, BasicType)] -> [(String, BasicType)]
-  applySub s = map (fmap (applySub s))
-
-  substitute :: TypeSub BasicType -> [(String, BasicType)] -> [(String, BasicType)]
-  substitute ts = map (fmap (substitute ts))
-
-instance Substitutable BasicType Context where
-  applySub :: Substitution BasicType -> Context -> Context
-  applySub s = map (fmap (applySub s))
-
-  substitute :: TypeSub BasicType -> Context -> Context
-  substitute ts = map (fmap (substitute ts))
-
 instance Type BasicType where
   typeVar :: Int -> BasicType
   typeVar = TypeVar
@@ -57,15 +45,19 @@ instance Type BasicType where
     case t of
       TypeVar v'  -> v == v'
       Arrow t1 t2 -> occurs v t1 || occurs v t2
+      Const _ -> False
 
   unify :: BasicType -> BasicType -> Maybe (Substitution BasicType)
-  unify (TypeVar v) tv'@(TypeVar v') =
-    Just (substitute (v, tv'))
-  unify (TypeVar v) tv' =
-    if occurs v tv' then Nothing else Just (substitute (v,tv'))
-  unify tv tv'@(TypeVar _) =
-    unify tv' tv
-  unify (Arrow t1 t2) (Arrow t1' t2') =
-    do s1 <- unify t1 t1'
-       s2 <- unify (s1 t2) (s1 t2')
-       return $ s2 . s1
+  unify (TypeVar v) tv'@(TypeVar v')  = Just (substitute (v, tv'))
+  unify (TypeVar v) c@(Const _)       = Just (substitute (v, c))
+  unify (TypeVar v) tv'
+    | occurs v tv'                    = Nothing
+    | otherwise                       = Just (substitute (v,tv'))
+  unify t tv@(TypeVar _)              = unify tv t
+  unify c@(Const s) c'@(Const s')
+    | s == s'                         = Just id
+    | otherwise                       = Nothing
+  unify (Arrow t1 t2) (Arrow t1' t2') = do s1 <- unify t1 t1'
+                                           s2 <- unify (s1 t2) (s1 t2')
+                                           return $ s2 . s1
+  unify _ _                           = Nothing

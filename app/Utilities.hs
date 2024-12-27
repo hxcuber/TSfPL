@@ -1,4 +1,4 @@
-{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
@@ -13,7 +13,7 @@ Given a type a and a substitution a -> a, a substitution b -> b can be created.
 b is the larger structure that has a as its elements.
 Note that b can be a.
 -}
-class Substitutable a b | b -> a where
+class Substitutable a b where
   applySub :: Substitution a -> b -> b
   substitute :: TypeSub a -> b -> b
 

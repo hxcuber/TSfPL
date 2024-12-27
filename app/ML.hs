@@ -20,6 +20,12 @@ instance Show Expr where
 
 testFix = Fix "r" (Abs "x" (Abs "y" (Appl (Appl (Var "r") (Appl (Appl (Var "r") (Var "y")) (Abs "a" (Abs "b" (Var "a"))))) (Var "x"))))
 
+add = Fix "g" (Abs "x" (Abs "y" (Appl (Appl (Appl (Const "Cond") (Appl (Const "IsZero") (Var "y"))) (Var "x")) (Appl (Appl (Var "g") (Appl (Const "Succ") (Var "x"))) (Appl (Const "Pred") (Var "y"))))))
 scomb = Abs "x" (Abs "y" (Abs "z" (Appl (Appl (Var "x") (Var "z")) (Appl (Var "y") (Var "z")))))
 kcomb = Abs "x" (Abs "y" (Var "x"))
 icomb = Abs "x" (Var "x")
+ycomb = Abs "g" (Appl (Abs "x" (Appl (Var "g") (Appl (Var "x") (Var "x")))) (Abs "x" (Appl (Var "g") (Appl (Var "x") (Var "x")))))
+fix = Fix "g" (Abs "f" (Appl (Var "f") (Appl (Var "g") (Var "f"))))
+{-
+fix g. \x y -> Cond (IsZero y) x (g (Succ x) (Pred y))
+-}

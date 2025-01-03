@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 module CurryTypes where
 import Data.Bifunctor (bimap)
 import LC (Expr (..), scomb, kcomb, icomb, ycomb)
@@ -13,7 +14,10 @@ import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Maybe (MaybeT (MaybeT, runMaybeT))
 import Data.Maybe (isJust)
 
-data CurryType = TypeVar Int | Arrow CurryType CurryType deriving Eq
+data CurryType where
+  TypeVar :: Int -> CurryType
+  Arrow :: CurryType -> CurryType -> CurryType
+  deriving Eq
 type TypeVariable = Int
 type Variable = String
 type Context = [(Variable, CurryType)]

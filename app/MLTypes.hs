@@ -6,7 +6,7 @@
 module MLTypes where
 import Utilities (Substitutable (..), Substitution, Type (..), Variable, TypeSub)
 import Data.Bifunctor (Bifunctor(second), first)
-import ML (Expr (..), scomb, kcomb, icomb, ycomb, fix)
+import ML (Expr (..), scomb, kcomb, icomb, ycomb, fix, ex5dot22)
 import Control.Monad.Trans.State (StateT (StateT), State, get, put, modify, runState, runStateT)
 import Data.Set (Set, empty, singleton, union, (\\), toList, filter, fold, notMember, member, insert)
 import Foreign (free)
@@ -194,7 +194,6 @@ sampleCtm = [
               ("Cond", Forall 1 (BasicType (Arrow (TypeConst "Bool") (Arrow (TypeConst "Num") (Arrow (TypeConst "Num") (TypeConst "Num"))))))
             ]
 
-
 testOne (expr, exp) = helper exp actual
   where
     helper Nothing Nothing     = True
@@ -211,7 +210,8 @@ testCases = [
               (kcomb, Just $ Arrow (TypeVar 1) (Arrow (TypeVar 2) (TypeVar 1))),
               (icomb, Just $ Arrow (TypeVar 1) (TypeVar 1)),
               (ycomb, Nothing),
-              (fix, Just $ Arrow (Arrow (TypeVar 1) (TypeVar 1)) (TypeVar 1))
+              (fix, Just $ Arrow (Arrow (TypeVar 1) (TypeVar 1)) (TypeVar 1)),
+              (ex5dot22, Just $ Arrow (Arrow (TypeVar 4) (Arrow (TypeVar 5) (TypeVar 4))) (Arrow (Arrow (TypeVar 4) (Arrow (TypeVar 5) (TypeVar 4))) (Arrow (TypeVar 4) (Arrow (TypeVar 5) (TypeVar 4)))))
             ]
 
 test = testAll testCases

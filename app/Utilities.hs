@@ -57,6 +57,3 @@ class Substitutable a a => Type a where
                           return $ s2 . s1
   unifyContexts [] c2s
     = Just id
-
-
-
